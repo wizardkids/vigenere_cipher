@@ -2,3 +2,4 @@ versions/
 *.json
 *.pyc
 *.txt
+scratch.py

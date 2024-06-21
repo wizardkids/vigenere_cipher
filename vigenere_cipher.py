@@ -9,9 +9,9 @@ A Vigenere cipher is very similar to a Caesar cipher; however, in a Vigenere cip
 
 The keyword is repeated or truncated as necessary to fit the length of the plaintext. As an example, encrypting "ATTACKATDAWN" with the key "LEMON" gives:
 
-Plaintext:		ATTACKATDAWN
-Key:			LEMONLEMONLE
-Ciphertext:	    LXFOPVEFRNHR
+Plaintext:		ATTACKATDAWN  0  19 19
+Key:			LEMONLEMONLE  11 4  12
+Ciphertext:	    LXFOPVEFRNHR  11 23 31 -> l x f
 
 Looking more closely, each letter in the ciphertext is the sum of the letters in the plaintext and the key. Thus, the first character of ciphertext is L due to the following calculations:
 
@@ -136,6 +136,8 @@ def decipher() -> None:
     CODENOTE:
         -- The encrypted text is sent to the same function as the plain text. The fourth argument tells cipher() to decrypt rather than encrypt.
     """
+
+    # BUG - This script handles only ASCII characters. Fix it so it will handle any unicode character.
 
     with open("encrypted.json", 'r', encoding='utf-8') as f:
         encrypted_dict = json.load(f)
