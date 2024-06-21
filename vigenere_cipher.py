@@ -1,6 +1,6 @@
 """
     Filename: vigenere_cipher.py
-     Version: 0.1
+     Version: 2.0
       Author: Richard E. Rawson
         Date: 2023-04-30
  Description:
@@ -18,23 +18,55 @@ Looking more closely, each letter in the ciphertext is the sum of the letters in
 A + L = 0 + 11 = 11 -> L (L is the 11th letter in the alphabet, using -0- based indexing)
 """
 
+import json
 from string import ascii_uppercase
 
+import click
+from icecream import ic
 
-def generate_key(plaintext, key):
+VERSION = "2.0"
+
+
+@click.command(help="", epilog="")
+@click.argument("plaintext", required=False, type=str)
+@click.argument("key", type=str, required=False)
+@click.version_option(version=VERSION)
+def cli(plaintext: str, key: str) -> None:
+    print()
+    ic(plaintext)
+    ic(key)
+    print()
+
+    # If there is only one string on the command line, it will be seen as [PLAINTEXT] rather then [KEY].
+    if plaintext and key is None:
+        print("[PLAINTEXT] and [KEY] must appear on the command line together.")
+        exit()
+
+    if plaintext:
+        # The key is not only expanded, but modified to preserve case of the text when decrypted.
+        cipher_key: list[str] = generate_key(plaintext, key)
+        cipher(plaintext, cipher_key, key)
+    else:
+        decipher()
+
+
+def generate_key(plaintext: str, key: str) -> list[str]:
     """
-    Create ke vigenere key that is an appropriate length for the length of the plain text.
+    Create a vigenere key that is the same length as the length of the plain text.
 
-    Args:
-        plaintext (str): the text that will be encrypted/decrypted
-        key [list]: the original vigenere key, as a string
+    Parameters
+    ----------
+    plaintext : str -- the text that will be encrypted/decrypted
+    key : str -- the original vigenere key, as a string
 
-    Returns:
-        [list]: the vigenere key
+    Returns
+    -------
+    list[str] -- the vigenere key
             -- The original key is expanded so that there is one letter for each letter in the plain text
-            -- The expanded key also contains capitalization that matches that of the plaintext, so that decrypting can restore the capitalization as well as the characters.
+            -- The expanded key also contains capitalization that matches that of the plaintext for correct decryption.
+
     """
-    cipher_key = []
+    cipher_key: list[str] = []
     for i in range(len(plaintext)):
         e = i % len(key)
         cipher_key.append(key[e])
@@ -49,7 +81,7 @@ def generate_key(plaintext, key):
     return cipher_key
 
 
-def cipher(text, cipher_key, encrypt=True):
+def cipher(text: str, cipher_key: list[str], key: str, encrypt=True):
     """
     Encrypt (if "encrypt" is True) or decrypt (if "encrypt" is False) the passed in text.
 
@@ -84,55 +116,35 @@ def cipher(text, cipher_key, encrypt=True):
         else:
             c.append(i)
 
-    return "".join(c)
+    encrypted_text = "".join(c)
+    print(f'Encrypted text:\n{encrypted_text}', sep="")
+
+    encrypted_dict = {'encrypted_text': encrypted_text, 'cipher_key': key}
+
+    if encrypt:
+        with open('encrypted.json', 'w', encoding="utf-8") as f:
+            json.dump(encrypted_dict, f)
+    else:
+        with open('decrypted.json', 'w', encoding="utf-8") as f:
+            json.dump(encrypted_text, f)
 
 
-def decipher(ciphertext, cipher_key):
+def decipher() -> None:
     """
-    Given an encrypted text, create a decrypted text.
-
-    Args:
-        ciphertext (str): the encrypted text
-        cipher_key [list]: the expanded key required for encryption/decryption
-
-    Returns:
-        str: the decrypted text
+    Given an encrypted text, generate the decrypted text using the encryption key.
 
     CODENOTE:
-        -- The encrypted text is sent to the same function as the plain text. The third argument tells cipher() to decrypt rather than encrypt.
-    """
-    decryptedtext = cipher(ciphertext, cipher_key, False)
-
-    return "".join(decryptedtext)
-
-
-def main(plaintext, key):
-    """
-    Main function that runs everything else.
-
-    Args:
-        plaintext (str): the plain text that will be encrypted/decrypted
-        key (str):the vigenere key
-
-    CODENOTE:
-        -- The key will need to be expanded so that there is one letter in the modified key for every letter in plain text. That expanded key will then be used to encrypt/decrypt according to the method described in the initial docstring.
-        -- Additionally, during processing, the expanded key will preserve the capitalization of the plain text.
+        -- The encrypted text is sent to the same function as the plain text. The fourth argument tells cipher() to decrypt rather than encrypt.
     """
 
-    # The key is not only expanded, but modified to preserve case of the text when decrypted.
-    cipher_key = generate_key(plaintext, key)
+    with open("encrypted.json", 'r', encoding='utf-8') as f:
+        encrypted_dict = json.load(f)
 
-    ciphertext = cipher(plaintext, cipher_key)
+    ciphertext: str = encrypted_dict['encrypted_text']
+    key: str = encrypted_dict['cipher_key']
+    cipher_key: list[str] = generate_key(ciphertext, key)
 
-    decryptedtext = decipher(ciphertext, cipher_key)
-
-    print()
-    print(f'    Plain text: {plaintext}')
-    print()
-    print(f'   Cipher text: {ciphertext}')
-    print()
-    print(f'Decrypted text: {decryptedtext}')
-    print()
+    cipher(ciphertext, cipher_key, key, False)
 
 
 if __name__ == '__main__':
@@ -142,4 +154,6 @@ if __name__ == '__main__':
 
     # plaintext = "In the café, the bánh mì sandwich is a popular choice among the regulars. The flaky baguette, stuffed with savory grilled pork, pickled daikon and carrots, fresh cilantro, and a dollop of sriracha mayo, is the perfect lunchtime indulgence. As I sipped my matcha latte, I noticed the barista's shirt had a cute ねこ (neko, or cat) graphic on it. It reminded me of the time I visited Tokyo and saw the famous 東京タワー (Tokyo Tower) at night, aglow with colorful lights. The world is full of unique and beautiful symbols, and Unicode makes it possible to express them all in one cohesive language."
 
-    main(plaintext, key)
+    # main(plaintext, key)
+    print()
+    cli()
