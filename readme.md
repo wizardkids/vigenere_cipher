@@ -48,5 +48,5 @@ To accommodate unicode text in this program, the shift in a given character in [
     Decrypted text: Attack at Dawn!!
 
 ## NOTES
-- The program will save the cipher key to "encrypted.json" for decryption.
+- The program saves both the ciphertext and the cipher key to "encrypted.json". Decryption obtains both strings and then decrypts.
 - Obviously, saving the encryption key along with the encrypted text is a ludicrous security risk. The program can be modified to prevent this, but the user will need to keep the key *somewhere*!
