@@ -10,6 +10,8 @@ In the normal Vigenere cipher, each letter in the ciphertext is the sum of the i
 
 A + L = 0 + 11 = 11 -> L (L is the 11th letter in the alphabet, using -0- based indexing)
 
+The keyword is repeated or truncated as necessary to fit the length of the plaintext. As an example, encrypting `ATTACKATDAWN` with the key `LEMON` gives a key of `LEMONLEMONLE`.
+
 Here is a full example using this simple method:
 ```
  Plaintext: ATTACKATDAWN
@@ -19,7 +21,6 @@ Ciphertext: LXFOPVEFRNHR
 
 To accommodate unicode text in this program, the shift in a given character in [PLAINTEXT] is determined, not as illustrated above, but by the code point of the corresponding character in the [KEY]. For example, if the [PLAINTEXT] is "Boats launch at midnight" and the [KEY] is "Lemon", then the code point for "L" (76) is added to the code point for "B" (66) to yield a cipher character of 142 (Ž). Decryption reverses this computation.
 
-The keyword is repeated or truncated as necessary to fit the length of the plaintext. As an example, encrypting `ATTACKATDAWN` with the key `LEMON` gives a key of `LEMONLEMONLE`.
 
 
 ## Usage
