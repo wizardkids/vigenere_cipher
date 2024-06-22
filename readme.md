@@ -4,7 +4,13 @@ This Python program implements the Vigenere cipher, which is a polyalphabetic su
 
 ## Description
 
-A Vigenere cipher is very similar to a Caesar cipher; however, in a Vigenere cipher, every character in the plaintext could be shifted by a different amount. The amount of shift is determined by a keyword, where 'A' in the keyword corresponds to shift of 0 (no shift), 'B' corresponds to a shift of 1, ..., and 'Z' corresponds to a shift of 25.
+A Vigenere cipher is very similar to a Caesar cipher; however, in a Vigenere cipher, every character in the plaintext could be shifted by a different amount. The amount of shift is determined by the provided keyword.
+
+In the normal Vigenere cipher, each letter in the ciphertext is the sum of the indexes for the letters in the plaintext and the key. Thus, the first character of ciphertext is L due to the following calculations:
+
+A + L = 0 + 11 = 11 -> L (L is the 11th letter in the alphabet, using -0- based indexing)
+
+In similar fashion, but to accommodate unicode text in this program, the shift in a given character in [PLAINTEXT] is determined by the code point of the corresponding character in the [KEY]. For example, if the [PLAINTEXT] is "Boats launch at midnight" and the [KEY] is "Lemon", then the code point for "L" (76) is added to the code point for "B" (66) to yield a cipher character of 142 (Ž). Decryption reverses this computation.
 
 The keyword is repeated or truncated as necessary to fit the length of the plaintext. As an example, encrypting `ATTACKATDAWN` with the key `LEMON` gives:
 
@@ -14,27 +20,30 @@ The keyword is repeated or truncated as necessary to fit the length of the plain
 Ciphertext: LXFOPVEFRNHR
 ```
 
-Each letter in the ciphertext is the sum of the indexes for the letters in the plaintext and the key. Thus, the first character of ciphertext is L due to the following calculations:
-
-A + L = 0 + 11 = 11 -> L (L is the 11th letter in the alphabet, using -0- based indexing)
-
-Decryption follows the same process but with a negative shift.
-
 ## Usage
+
+**Encryption:** provide both a message and a key
+
+`python vigenere_cipher.py "The boats launch at midnight." "LEMoN"`
+
+**Decryption:**
 
 `python vigenere_cipher.py`
 
-**_As of this version, the message to be encrypted/decrypted is hardcoded into the script. The next version will incorporate a command-line interface to accommodate provision of a message to encrypt._**
 
-### Functions
+## Functions
 - **generate_key(plaintext, key)**: Creates the Vigenere key by repeating the provided key to match the length of the plaintext. It also preserves the capitalization of the plaintext in the key.
-- **cipher(text, cipher_key, encrypt=True)**: Encrypts or decrypts the given text using the provided cipher key.
-- **decipher(ciphertext, cipher_key)**: Decrypts the ciphertext using the provided cipher key.
-- **main(plaintext, key)**: The main function that orchestrates the encryption and decryption process.
+- **cipher(text, cipher_key, key, encrypt=True)**: Encrypts or decrypts the given text using the provided cipher key.
+- **decipher()**: Decrypts the ciphertext in "encrypted.json" using the saved cipher key.
 
-### Example
+## Example
     Plain text: Attack at Dawn!!
+           Key: LEMon
 
-    Cipher text: LxfopvEfrnhr!!
+    Cipher text: ¹ÁÐÑ·e®ã¦ÄÝm
 
     Decrypted text: Attack at Dawn!!
+
+## NOTES
+- The program will save the cipher key to "encrypted.json" for decryption.
+- Obviously, saving the encryption key along with the encrypted text is a ludicrous security risk. The program can be modified to prevent this, but the user will need to keep the key *somewhere*!

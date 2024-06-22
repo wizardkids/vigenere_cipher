@@ -19,6 +19,7 @@ A + L = 0 + 11 = 11 -> L (L is the 11th letter in the alphabet, using -0- based 
 """
 
 import json
+from operator import le
 from string import ascii_uppercase
 
 import click
@@ -27,15 +28,15 @@ from icecream import ic
 VERSION = "2.0"
 
 
-@click.command(help="", epilog="")
+@click.command(help="Encrypt/decrypt plaintext using Vigenere cipher.", epilog="To encrypt, provide quote-delimited [PLAINTEXT] and [KEY] on the command line. [PLAINTEXT] can include any unicode characters. Encrypted text is saved in \"encrypted.json\". To decrypt, run this program with no arguments. The decrypted text is saved in \"decrypted.json\".")
 @click.argument("plaintext", required=False, type=str)
 @click.argument("key", type=str, required=False)
 @click.version_option(version=VERSION)
 def cli(plaintext: str, key: str) -> None:
-    print()
-    ic(plaintext)
-    ic(key)
-    print()
+    # print()
+    # ic(plaintext)
+    # ic(key)
+    # print()
 
     # If there is only one string on the command line, it will be seen as [PLAINTEXT] rather then [KEY].
     if plaintext and key is None:
@@ -71,62 +72,47 @@ def generate_key(plaintext: str, key: str) -> list[str]:
         e = i % len(key)
         cipher_key.append(key[e])
 
-    # Modify key for upper/lower case of plaintext:
-    for ndx, i in enumerate(plaintext):
-        if ord(i) >= 97:
-            cipher_key[ndx] = cipher_key[ndx].lower()
-        else:
-            cipher_key[ndx] = cipher_key[ndx].upper()
-
     return cipher_key
 
 
-def cipher(text: str, cipher_key: list[str], key: str, encrypt=True):
+def cipher(text: str, cipher_key: list[str], key: str, encrypt=True) -> None:
     """
     Encrypt (if "encrypt" is True) or decrypt (if "encrypt" is False) the passed in text.
 
-    Args:
-        text (str): either the plain text or the encrypted text
-        cipher_key [list]: the expanded key
-        encrypt (bool, optional): True to encrypt; False to decrypt
-
-    Returns:
-        str: the encrypted or decrypted text
+    Parameters
+    ----------
+    text : str -- either the plain text or the encrypted text
+    cipher_key : list[str] -- the expanded key
+    key : str -- the original key
+    encrypt : bool, optional -- True to encrypt; False to decrypt, by default True
     """
-    alp = list(ascii_uppercase)
 
-    c = []
-    for ndx, i in enumerate(text):
-        o = ord(i)
-        s = i.upper()
-        if s not in ascii_uppercase:
-            c.append(i)
-            continue
-        p_ndx = alp.index(s)
-        k_ndx = alp.index(cipher_key[ndx].upper())
-        if encrypt:
-            alp_ndx = (p_ndx + k_ndx) % 26
-        else:
-            alp_ndx = (p_ndx - k_ndx) % 26
+    c: list[str] = []
 
-        if ord(i) >= 97 and ord(i) <= 122:
-            c.append(alp[alp_ndx].lower())
-        elif ord(i) >= 65 and ord(i) <= 90:
-            c.append(alp[alp_ndx].upper())
-        else:
-            c.append(i)
+    text_ord: list[int] = [ord(i) for i in text]
+    cipher_key_ord: list[int] = [ord(i) for i in cipher_key]
+    z = zip(text_ord, cipher_key_ord)
 
-    encrypted_text = "".join(c)
-    print(f'Encrypted text:\n{encrypted_text}', sep="")
+    if encrypt:
+        for x,y in z:
+            diff: int =  (x + y) % 0x110000
+            c.append(chr(diff))
+    else:
+        for x,y in z:
+            diff: int = (x - y) % 0x110000
+            c.append(chr(diff))
 
-    encrypted_dict = {'encrypted_text': encrypted_text, 'cipher_key': key}
+    encrypted_text: str = "".join(c)
+    # print(f'Encrypted text:\n{encrypted_text}', sep="")
+
+    encrypted_dict: dict[str, str] = {'encrypted_text': encrypted_text, 'cipher_key': key}
 
     if encrypt:
         with open('encrypted.json', 'w', encoding="utf-8") as f:
             json.dump(encrypted_dict, f)
     else:
         with open('decrypted.json', 'w', encoding="utf-8") as f:
-            json.dump(encrypted_text, f)
+            json.dump(encrypted_text, f, ensure_ascii=False)
 
 
 def decipher() -> None:
@@ -136,8 +122,6 @@ def decipher() -> None:
     CODENOTE:
         -- The encrypted text is sent to the same function as the plain text. The fourth argument tells cipher() to decrypt rather than encrypt.
     """
-
-    # BUG - This script handles only ASCII characters. Fix it so it will handle any unicode character.
 
     with open("encrypted.json", 'r', encoding='utf-8') as f:
         encrypted_dict = json.load(f)
